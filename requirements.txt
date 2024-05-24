@@ -1,11 +1,10 @@
 streamlit==1.28.1
-base58==2.0.1
-pillow==9.0.1
-joblib==1.2.0
+openpyxl==3.1.2
 pandas==1.5.3
-seaborn==0.12.2
-matplotlib==3.6.3
-openpyxl==3.0.10
+base58==2.0.1
+numpy==1.22.4
+pillow==9.0.1
+sklearn==0.0
+scikit-learn==1.0.2
 xgboost==2.0.3
 catboost==1.2.3
-scikit-learn==1.2.2  
