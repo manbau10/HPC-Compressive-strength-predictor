@@ -3,6 +3,7 @@ import joblib
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import sqlite3
 
 # Load the trained pipeline
 pipeline = joblib.load('FS-EVR-RFE_pipeline.pkl')
@@ -30,6 +31,18 @@ default_values = {
     'Fine Aggregate': 770.49,
     'Age of testing': 44.05
 }
+
+# Database setup
+conn = sqlite3.connect('feedback.db')
+c = conn.cursor()
+c.execute('''
+    CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        feedback TEXT NOT NULL,
+        email TEXT
+    )
+''')
+conn.commit()
 
 # Define the pages
 def prediction_page():
@@ -145,15 +158,23 @@ def interpretability_page():
     """)
 
 def feedback_page():
-    st.title("User Feedback")
-    st.write("We value your feedback! Please provide your thoughts and suggestions below:")
+    st.title("Feedback")
+    st.write("We value your feedback. Please let us know how we can improve this app.")
 
-    feedback = st.text_area("Your feedback")
-    email = st.text_input("Your email (optional)")
+    feedback_text = st.text_area("Enter your feedback here")
+    email = st.text_input("Your Email (optional)")
 
     if st.button("Submit Feedback"):
-        st.write("Thank you for your feedback!")
-        # Here you could add code to save the feedback, send an email, etc.
+        if feedback_text:
+            c.execute("INSERT INTO feedback (feedback, email) VALUES (?, ?)", (feedback_text, email))
+            conn.commit()
+            st.success("Thank you for your feedback, we appreciate your input!")
+        else:
+            st.error("Feedback cannot be empty.")
+
+# Close the connection to the database when the script ends
+import atexit
+atexit.register(lambda: conn.close())
 
 # Main app
 st.sidebar.title("Navigation")
