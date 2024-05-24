@@ -1,6 +1,5 @@
 streamlit==1.28.1
 base58==2.0.1
-numpy==1.22.4
 pillow==9.0.1
 joblib==1.2.0
 pandas==1.5.3
