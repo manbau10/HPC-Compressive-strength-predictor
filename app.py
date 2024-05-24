@@ -157,8 +157,17 @@ def interpretability_page():
     This plot shows the impact of each feature on the model. For instance, the plot indicates that higher values of cement content contribute positively to the model, while lower values of water contribute positively to the model.
     """)
 
+# Function to download feedback as CSV
+def download_feedback():
+    c.execute("SELECT * FROM feedback")
+    feedback_data = c.fetchall()
+    feedback_df = pd.DataFrame(feedback_data, columns=["id", "feedback", "email"])
+    feedback_csv = feedback_df.to_csv(index=False)
+    return feedback_csv
+
+# Feedback page
 def feedback_page():
-    st.title("Feedback")
+    st.title("User Feedback")
     st.write("We value your feedback. Please let us know how we can improve this app.")
 
     feedback_text = st.text_area("Enter your feedback here")
@@ -171,6 +180,24 @@ def feedback_page():
             st.success("Thank you for your feedback, we appreciate your input!")
         else:
             st.error("Feedback cannot be empty.")
+def admin_page():
+    st.title("Admin Page")
+    st.write("Download feedback data. This user feedback data can only be downloaded by the admin or their delegates.")
+
+    password = st.text_input("Enter password", type="password")
+    submit_button = st.button("Submit")
+
+    if submit_button:
+        if password == "Abcd":  # Replace with your secure password
+            feedback_csv = download_feedback()
+            st.download_button(
+                label="Download Feedback as CSV",
+                data=feedback_csv,
+                file_name="feedback.csv",
+                mime="text/csv"
+            )
+        else:
+            st.error("Incorrect password, contact the admin")
 
 # Close the connection to the database when the script ends
 import atexit
@@ -178,7 +205,7 @@ atexit.register(lambda: conn.close())
 
 # Main app
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Prediction", "Data Exploration", "Model Interpretability", "User Feedback"])
+page = st.sidebar.radio("Go to", ["Prediction", "Data Exploration", "Model Interpretability", "User Feedback", "Admin"])
 
 if page == "Prediction":
     prediction_page()
@@ -186,5 +213,7 @@ elif page == "Data Exploration":
     data_exploration_page()
 elif page == "Model Interpretability":
     interpretability_page()
-else:
+elif page == "User Feedback":
     feedback_page()
+elif page == "Admin":
+    admin_page()
