@@ -7,6 +7,6 @@ pandas==1.5.3
 seaborn==0.12.2
 matplotlib==3.6.3
 openpyxl==3.0.10
-xgboost==1.7.6
-catboost==1.1
+xgboost==2.0.3
+catboost==1.2.3
 scikit-learn==1.2.2  
