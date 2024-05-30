@@ -46,7 +46,7 @@ conn.commit()
 
 # Define the pages
 def prediction_page():
-    st.title("High Performance Concrete Prediction App")
+    st.title("Compressive Strength of High Performance Concrete Prediction App")
     st.write('Machine learning-powered predictor for compressive strength of HPC')
 
     # Display the table with input variable details
@@ -107,35 +107,19 @@ def data_exploration_page():
     st.title("Data Exploration")
     st.write("Explore the distribution of the variables and their correlations.")
 
-    # Load the data
-    data = pd.read_excel('data.xlsx')
+    st.image('Cement_distribution.png', caption='Cement Distribution', use_column_width=True)
+    st.image('Blast-furnace Slag_distribution.png', caption='Blast-furnace Slag Distribution', use_column_width=True)
+    st.image('Fly Ash_distribution.png', caption='Fly Ash Distribution', use_column_width=True)
+    st.image('Water_distribution.png', caption='Water Distribution', use_column_width=True)
+    st.image('Super-plasticizer_distribution.png', caption='Super-plasticizer Distribution', use_column_width=True)
+    st.image('Fine Aggregate_distribution.png', caption='Fine Aggregate Distribution', use_column_width=True)
+    st.image('Concrete compressive strength_distribution.png', caption='Concrete compressive strength Distribution', use_column_width=True)
     
-    
-
-    # Distribution of the variables
-    st.write("### Distribution of Variables")
-    fig, axes = plt.subplots(len(data.columns), 1, figsize=(10, len(data.columns) * 5))
-    fig.tight_layout(pad=10.0)  # Increased padding between plots
-
-    for i, col in enumerate(data.columns):
-        color = 'blue' if col != 'Concrete compressive strength' else 'red'
-        sns.histplot(data[col], kde=True, ax=axes[i], color=color)
-        axes[i].set_title(f'Distribution of {col}')
-        axes[i].set_xlabel(col)
-        axes[i].set_ylabel('Frequency')
-
-    st.pyplot(fig)
-
     # Correlation map
-    st.write("### Correlation Map")
-    corr_matrix = data.corr()
-
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm', ax=ax)
-    ax.set_title('Correlation Matrix of Variables')
-    st.pyplot(fig)
-
-
+    st.write("### Correlation Matrix")
+    st.write("This map shows the correlation between the variables in the data.")
+    st.image('correlation_matrix.png', caption='Correlation Matrix', use_column_width=True)
+    
 def interpretability_page():
     st.title("Model Interpretability")
     st.write("""
