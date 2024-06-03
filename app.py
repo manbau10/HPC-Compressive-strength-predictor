@@ -3,10 +3,16 @@ import joblib
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import sqlite3
+import csv
+import os
+
+# Cache the loading of the trained pipeline
+@st.cache_resource
+def load_pipeline():
+    return joblib.load('FS-EVR-RFE_pipeline.pkl')
 
 # Load the trained pipeline
-pipeline = joblib.load('FS-EVR-RFE_pipeline.pkl')
+pipeline = load_pipeline()
 
 # Get the RFE step from the pipeline
 rfe = pipeline.named_steps['feature_selection']
@@ -31,18 +37,6 @@ default_values = {
     'Fine Aggregate': 770.49,
     'Age of testing': 44.05
 }
-
-# Database setup
-conn = sqlite3.connect('feedback.db')
-c = conn.cursor()
-c.execute('''
-    CREATE TABLE IF NOT EXISTS feedback (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        feedback TEXT NOT NULL,
-        email TEXT
-    )
-''')
-conn.commit()
 
 # Define the pages
 def prediction_page():
@@ -142,12 +136,24 @@ def interpretability_page():
     """)
 
 # Function to download feedback as CSV
+@st.cache_data
 def download_feedback():
-    c.execute("SELECT * FROM feedback")
-    feedback_data = c.fetchall()
-    feedback_df = pd.DataFrame(feedback_data, columns=["id", "feedback", "email"])
-    feedback_csv = feedback_df.to_csv(index=False)
-    return feedback_csv
+    if os.path.exists('feedback.csv'):
+        feedback_df = pd.read_csv('feedback.csv')
+        feedback_csv = feedback_df.to_csv(index=False)
+        return feedback_csv
+    else:
+        return ""
+
+# Function to save feedback to a CSV file
+def save_feedback(feedback_text, email):
+    feedback_exists = os.path.exists('feedback.csv')
+    with open('feedback.csv', mode='a', newline='') as file:
+        writer = csv.writer(file)
+        if not feedback_exists:
+            # Write header if file does not exist
+            writer.writerow(["feedback", "email"])
+        writer.writerow([feedback_text, email])
 
 # Feedback page
 def feedback_page():
@@ -159,11 +165,11 @@ def feedback_page():
 
     if st.button("Submit Feedback"):
         if feedback_text:
-            c.execute("INSERT INTO feedback (feedback, email) VALUES (?, ?)", (feedback_text, email))
-            conn.commit()
+            save_feedback(feedback_text, email)
             st.success("Thank you for your feedback, we appreciate your input!")
         else:
             st.error("Feedback cannot be empty.")
+
 def admin_page():
     st.title("Admin Page")
     st.write("Download feedback data. This user feedback data can only be downloaded by the admin or their delegates.")
@@ -174,23 +180,23 @@ def admin_page():
     if submit_button:
         if password == "Abcd":  # Replace with your secure password
             feedback_csv = download_feedback()
-            st.download_button(
-                label="Download Feedback as CSV",
-                data=feedback_csv,
-                file_name="feedback.csv",
-                mime="text/csv"
-            )
+            if feedback_csv:
+                st.download_button(
+                    label="Download Feedback as CSV",
+                    data=feedback_csv,
+                    file_name="feedback.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.error("No feedback data available.")
         else:
             st.error("Incorrect password, contact the admin")
 
-# Close the connection to the database when the script ends
-import atexit
-atexit.register(lambda: conn.close())
-
 # Main app
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Prediction", "Data Exploration", "Model Interpretability", "User Feedback", "Admin"])
+page = st.sidebar.selectbox("Go to", ["Prediction", "Data Exploration", "Model Interpretability", "User Feedback", "Admin Page"])
 
+# Route to the selected page
 if page == "Prediction":
     prediction_page()
 elif page == "Data Exploration":
@@ -199,5 +205,5 @@ elif page == "Model Interpretability":
     interpretability_page()
 elif page == "User Feedback":
     feedback_page()
-elif page == "Admin":
+elif page == "Admin Page":
     admin_page()
